@@ -34,21 +34,25 @@ def get_one_job(job_id):
 
 @blueprint.route('/api/jobs', methods=['POST'])
 def create_job():
-
-    # Проверьте, что запрос содержит данные в формате json,
-    # а также, что данный json содержит все требуемые поля данных
-    # При необходимости верните сообщение об ошибке в нужном формате
-
+    if not request.json:
+        return jsonify({'error': 'Empty request'})
+    keys = [
+        'id', 'job', 'work_size', 'collaborators', 'start_date',
+        'end_date', 'is_finished', 'team_leader'
+    ]
+    if not all(key in request.json for key in keys):
+        return jsonify({'error': 'Bad request'})
     session = db_session.create_session()
-
-    # Если работа с таким идентификатором уже существует в базе данных,
-    # верните сообщение об ошибке в нужном формате
-
     job = Jobs(
         id=request.json['id'],
-        ...  # Проинициализируйте оставшиеся поля
+        job=request.json['job'],
+        work_size=request.json['work_size'],
+        collaborators=request.json['collaborators'],
+        start_date=request.json['start_date'],
+        end_date=request.json['end_date'],
+        is_finished=request.json['is_finished'],
+        team_leader=request.json['team_leader']
     )
-
-    # Сохраните объект job в базе данных
-
-    return jsonify(...)  # Верните сообщение об успехе
+    session.add(job)
+    session.commit()
+    return jsonify({'success': 'OK'})
